@@ -16,17 +16,17 @@ int main(int argc , char *argv[]){
     char largeur_hauteur[4];
     char nbre_couleurs_str[4];
     fgets(format_str, 3, fichier);
-    format = atoi(format);
-    printf("%u\n", format);
+    format = atoi(format_str);
+    printf("%i\n", format);
     getc(fichier);
     fgets(largeur_hauteur, 4, fichier);
     largeur = largeur_hauteur[0];
     hauteur = largeur_hauteur[1];
-    printf("%u\n", hauteur);
+    printf("%i\n", hauteur);
     getc(fichier);
     fgets(nbre_couleurs_str, 4, fichier);
     nbre_couleurs = atoi(nbre_couleurs_str);
-    printf("%u\n", nbre_couleurs);
+    printf("%i\n", nbre_couleurs);
 
     }
   return 0;
