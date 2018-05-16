@@ -42,8 +42,7 @@ int main(int argc , char *argv[]){
         fichier = fopen(argv[1], "rb");
  }
  if (fichier != NULL){
-     struct entete_PPM *entete = lecture_entete_PPM(fichier);
-     printf("%s\n", entete->format);
+     struct entete_PPM entete = lecture_entete_PPM(fichier);
   }
   return 0;
   }
