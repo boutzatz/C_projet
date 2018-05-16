@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 
 struct entete_PPM { 
     char format[3];
@@ -9,6 +10,11 @@ struct entete_PPM {
     uint32_t  hauteur;
     uint32_t nbre_couleurs;
 };
+/*
+         recuperation de l'entete d'un fichier PPM et les stocker puis 
+         retourner dans un type struct entete_PPM. 
+ 
+*/
 struct entete_PPM *lecture_entete_PPM(FILE* fichier){
     struct entete_PPM *entete = calloc(1, sizeof(struct entete_PPM));
     
@@ -30,20 +36,45 @@ struct entete_PPM *lecture_entete_PPM(FILE* fichier){
     entete->largeur = largeur;
     entete->hauteur = hauteur;
     entete->nbre_couleurs = nbre_couleurs;
+    
+    
+
+
     return entete;
 
 }    
+/*
+    Recupération des MCU's du fichier PPM et les retourner dans un tabelau
+*/
+uint8_t** mcu_table(FILE* fichier) {
+    struct entete_PPM *entete =  lecture_entete_PPM(fichier);
+    uint32_t nbr_samples = ceil(entete->largeur / 8 ) *ceil(entete->hauteur / 8 );
+    //printf("%u\n", nbr_samples);
     
+    uint8_t** table_des_mcu = calloc(1,sizeof(uint8_t* ));
+    for (uint8_t i = 0; i < nbr_samples; i++){
+        table_des_mcu[i] = calloc(64, sizeof(uint8_t));
+    }
+    uint32_t nv_largeur = ceil(entete->largeur / 8)*8;
+    uint32_t nv_hauteur = ceil(entete->hauteur / 8)*8;
+    for (uint32_t i = 0; i < nbr_samples*64; i++){
+        uint32_t i_sample_number = ceil(entete->largeur/8)/8 + ceil(entete->hauteur/8)/8;
+        printf("%u%u\n",i, i_sample_number);
+    }
+    
+    return table_des_mcu;
+}
 
 int main(int argc , char *argv[]){
     FILE * fichier = NULL;
+    printf("1");
      if (argc > 1){
 
         fichier = fopen(argv[1], "rb");
  }
  if (fichier != NULL){
-     struct entete_PPM *entete = lecture_entete_PPM(fichier);
-     printf("%s\n", entete->format);
+    uint8_t **mcus = mcu_table(fichier);
+    
   }
   return 0;
   }
