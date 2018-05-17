@@ -2,16 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "jpeg_writer.h"
-#include "htables.h"
-#include "qtables.h"
-#include "huffman.h"
+#include <math.h>
+
 struct entete_PPM {
     char format[3];
     uint32_t  largeur;
     uint32_t  hauteur;
     uint32_t nbre_couleurs;
 };
+/*
+         recuperation de l'entete d'un fichier PPM et les stocker puis
+         retourner dans un type struct entete_PPM.
+
+*/
 struct entete_PPM *lecture_entete_PPM(FILE* fichier){
     struct entete_PPM *entete = calloc(1, sizeof(struct entete_PPM));
 
@@ -33,6 +36,10 @@ struct entete_PPM *lecture_entete_PPM(FILE* fichier){
     entete->largeur = largeur;
     entete->hauteur = hauteur;
     entete->nbre_couleurs = nbre_couleurs;
+
+
+
+
     return entete;
 
 }
@@ -64,15 +71,55 @@ void ecriture_entete_jpeg(char* fichier){
   jpeg_write_header (jdesc );
 }
 
+
+
+
+/*
+    Recupération des MCU's du fichier PPM et les retourner dans un tabelau
+*/
+uint8_t** mcu_table(FILE* fichier) {
+    struct entete_PPM *entete =  lecture_entete_PPM(fichier);
+    uint32_t nbr_samples = ceil(entete->largeur / 8 ) *ceil(entete->hauteur / 8 );
+    //printf("%u\n", nbr_samples);
+    uint8_t** table_des_mcu = calloc(nbr_samples,sizeof(uint32_t* ));
+    for (uint8_t i = 0; i < nbr_samples; i++){
+        table_des_mcu[i] = calloc(64, sizeof(uint32_t));
+    }
+    // uint32_t nv_largeur = ceil(entete->largeur / 8)*8;
+    // uint32_t nv_hauteur = ceil(entete->hauteur / 8)*8;
+    // for (uint32_t i = 0; i < nbr_samples*64; i++){
+    //     uint32_t i_sample_number = ceil(entete->largeur/8)/8 + ceil(entete->hauteur/8)/8;
+    // }
+
+    return table_des_mcu;
+
+}
+
+void afficher_table88(uint8_t *tableau) {
+  for (uint8_t i = 0; i < 64; i++) {
+    printf("%u\t", tableau[i]);
+    if ( (i+1) % 8 == 0){
+      printf("\n");
+    }
+  }
+}
 int main(int argc , char *argv[]){
     FILE * fichier = NULL;
+
      if (argc > 1){
 
         fichier = fopen(argv[1], "rb");
+
  }
  if (fichier != NULL){
-     struct entete_PPM *entete = lecture_entete_PPM(fichier);
-     printf("%s\n", entete->format);
+    uint8_t **mcus = mcu_table(fichier);
+    afficher_table88(mcus[0]);
+    char c = fgetc(fichier);
+    printf("%c ",c );
+    while (c != EOF ){
+      printf("%c ",c );
+      c = fgetc(fichier);
+    }
   }
   ecriture_entete_jpeg(argv[1]);
   return 0;
