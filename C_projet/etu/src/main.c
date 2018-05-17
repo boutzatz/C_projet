@@ -28,14 +28,14 @@ struct entete_PPM *lecture_entete_PPM(FILE* fichier){
     uint32_t nbre_couleurs;
     char format_str[3];
     char largeur_hauteur[4];
-    char nbre_couleurs_str[4];
+    char nbre_couleurs_str[5];
     fgets(format_str, 3, fichier);
     getc(fichier);
     fgets(largeur_hauteur, 4, fichier);
     largeur = largeur_hauteur[0] - '0';
     hauteur = largeur_hauteur[2] - '0';
     getc(fichier);
-    fgets(nbre_couleurs_str, 4, fichier);
+    fgets(nbre_couleurs_str, 5, fichier);
     nbre_couleurs = atoi(nbre_couleurs_str);
     strcpy(entete->format, format_str);
     entete->largeur = largeur;
@@ -95,6 +95,13 @@ uint8_t** mcu_table(FILE* fichier) {
     // for (uint32_t i = 0; i < nbr_samples*64; i++){
     //     uint32_t i_sample_number = ceil(entete->largeur/8)/8 + ceil(entete->hauteur/8)/8;
     // }
+    uint32_t i = 0;
+    int32_t c = fgetc(fichier);
+    while (c != EOF ){
+          table_des_mcu[0][i] = c;
+          ++i;
+          c = fgetc(fichier);
+        }
 
     return table_des_mcu;
 
@@ -102,14 +109,15 @@ uint8_t** mcu_table(FILE* fichier) {
 
 void afficher_table88(uint8_t *tableau) {
   for (uint8_t i = 0; i < 64; i++) {
-    printf("%u\t", tableau[i]);
+    printf("%06x\t", tableau[i]);
     if ( (i+1) % 8 == 0){
       printf("\n");
     }
   }
 }
 int main(int argc , char *argv[]){
-    FILE * fichier = NULL;
+
+FILE * fichier = NULL;
 
      if (argc > 1){
 
@@ -117,15 +125,11 @@ int main(int argc , char *argv[]){
 
  }
  if (fichier != NULL){
-    uint8_t **mcus = mcu_table(fichier);
-    afficher_table88(mcus[0]);
-    char c = fgetc(fichier);
-    printf("%c ",c );
-    while (c != EOF ){
-      printf("%c ",c );
-      c = fgetc(fichier);
-    }
+   uint8_t **mcus = mcu_table(fichier);
+   afficher_table88(mcus[0]);
+
   }
+
   ecriture_entete_jpeg(argv[1]);
   return 0;
   }
