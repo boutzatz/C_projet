@@ -3,6 +3,11 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
+#include "../include/htables.h"
+#include "../include/qtables.h"
+#include "../include/huffman.h"
+#include "../include/jpeg_writer.h"
+#include "../include/htables.h"
 
 struct entete_PPM {
     char format[3];

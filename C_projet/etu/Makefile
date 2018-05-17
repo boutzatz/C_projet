@@ -4,7 +4,7 @@ LD = clang
 # -O0 désactive les optimisations à la compilation
 # C'est utile pour débugger, par contre en "production"
 # on active au moins les optimisations de niveau 2 (-O2).
-CFLAGS = -Wall -Wextra -lm  -O0 -g -Iinclude
+CFLAGS = -Wall -Wextra   -O0 -g -Iinclude -lm
 LDFLAGS =
 
 # Par défaut, on compile tous les fichiers source (.c) qui se trouvent dans le
