@@ -208,6 +208,27 @@ int16_t *quantif(int16_t * ZZ){
   }
   return table;
 }
+int16_t codage_diff(int16_t *composante){
+    int16_t DC = composante[0];
+    int8_t magn = ceil(log(abs(DC))/log(2));
+    int16_t borne_1 = 1<<(magn-1);
+    int16_t borne_2 = (1<<magn) -1;
+    printf("%i %i %i \n", magn, borne_1, borne_2);
+    int16_t indice;
+    if (DC >= borne_1){
+        indice = borne_2 - borne_1 + 1 + DC - borne_1  + 1;
+    } else {
+        indice = DC + borne_2;
+    }
+
+    return indice;
+    
+    
+    
+
+}
+
+
 
 int main(int argc , char *argv[]){
 
@@ -230,8 +251,9 @@ FILE * fichier = NULL;
    printf("\n");
    int16_t *table_quantif = quantif(table_zz);
    afficher_DCT_ZZ(table_quantif);
+   printf("%i\n", codage_diff(table_quantif));
   }
-
+   
   ecriture_entete_jpeg(argv[1]);
   return 0;
   }
