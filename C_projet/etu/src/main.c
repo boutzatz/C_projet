@@ -84,21 +84,21 @@ void ecriture_entete_jpeg(char* fichier){
 /*
     Recupération des MCU's du fichier PPM et les retourner dans un tabelau
 */
-int8_t** mcu_table(FILE* fichier) {
+uint16_t** mcu_table(FILE* fichier) {
     struct entete_PPM *entete =  lecture_entete_PPM(fichier);
-    int32_t nbr_samples = ceil(entete->largeur / 8 ) *ceil(entete->hauteur / 8 );
+    uint16_t nbr_samples = ceil(entete->largeur / 8 ) *ceil(entete->hauteur / 8 );
     //printf("%u\n", nbr_samples);
-    int8_t** table_des_mcu = calloc(nbr_samples,sizeof(int32_t* ));
-    for (int8_t i = 0; i < nbr_samples; i++){
-        table_des_mcu[i] = calloc(64, sizeof(int32_t));
+    uint16_t** table_des_mcu = calloc(nbr_samples,sizeof(uint16_t* ));
+    for (uint16_t i = 0; i < nbr_samples; i++){
+        table_des_mcu[i] = calloc(64, sizeof(uint16_t));
     }
     // uint32_t nv_largeur = ceil(entete->largeur / 8)*8;
     // uint32_t nv_hauteur = ceil(entete->hauteur / 8)*8;
     // for (uint32_t i = 0; i < nbr_samples*64; i++){
     //     uint32_t i_sample_number = ceil(entete->largeur/8)/8 + ceil(entete->hauteur/8)/8;
     // }
-    int32_t i = 0;
-    int32_t c = fgetc(fichier);
+    uint16_t i = 0;
+    int16_t c = fgetc(fichier);
     while (c != EOF ){
           table_des_mcu[0][i] = c;
           ++i;
@@ -109,9 +109,18 @@ int8_t** mcu_table(FILE* fichier) {
 
 }
 
-void afficher_table88(int8_t *tableau) {
-  for (int8_t i = 0; i < 64; i++) {
-    printf("%i\t", tableau[i]);
+void afficher_mcu(uint16_t *tableau) {
+  for (int16_t i = 0; i < 64; i++) {
+    printf("%06x\t", tableau[i]);
+    if ( (i+1) % 8 == 0){
+      printf("\n");
+    }
+  }
+}
+
+void afficher_DCT_ZZ(int16_t *tableau) {
+  for (int16_t i = 0; i < 64; i++) {
+    printf("%04hx\t", tableau[i]);
     if ( (i+1) % 8 == 0){
       printf("\n");
     }
@@ -128,18 +137,73 @@ float C(int i){
   }
 }
 
-int8_t * DCT_table(int8_t** mcu_table){
+int16_t * DCT_table(uint16_t** mcu_table){
   int i,j,x,y;
-  int8_t *table = calloc(64, sizeof(int8_t));
+  int16_t *table = calloc(64, sizeof(int16_t));
   for (i=0; i<8; i++){
     for(j=0; j<8; j++){
       for (x=0;x<8;x++){
         for(y=0;y<8;y++){
-          int8_t valeur_decalee = mcu_table[0][8*x+y] - 128;
-          table[8*i+j] += valeur_decalee*cos(((2*x+1)*i*PI)*0.0625)* cos(((2*y+1)*j*PI)*0.0625);
+          table[8*i+j] +=(mcu_table[0][8*x+y] - 128)*cos(((2*x+1)*i*PI)*0.0625)* cos(((2*y+1)*j*PI)*0.0625);
         }
+
       }
-      table[8*i+j] = 0.25*C(i)*C(j) *table[8*i+j];
+      table[8*i+j] = 0.25*C(i)*C(j)*table[8*i+j];
+    }
+  }
+  return table;
+}
+
+int16_t * table_ZZ(int16_t *dct_table){
+    int i = 0;
+    int j = 0;
+    int croiss = 0;
+    int index = 0;
+    int16_t * table = calloc(64,sizeof(int16_t));
+    while (i < 8 && j < 8){
+        table[index] = dct_table[8*i+j];
+        ++index;
+        //printf("%d \t",dct_table[8*i+j]);
+        if (i == 0 || i == 7){
+          if (j == 7){
+            j = j - 1;
+            i = i + 1;
+  		}
+            j = j + 1;
+            table[index] = dct_table[8*i+j];
+            ++index;
+            //printf("%d \t",dct_table[8*i+j]);
+  	        } else{if (j == 0||j == 7){
+              if (i ==7){
+                i = i - 1;
+                j = j + 1;
+  			}
+                i = i + 1;
+                table[index] = dct_table[8*i+j];
+                ++index;
+                //printf("%d \t",dct_table[8*i+j]);
+  		}
+  	}
+            if (i == 0 || j == 7) { croiss = 0;}
+  		    if (j == 0 || i == 7)  { croiss = 1;}
+            if (croiss==1)
+  	{
+            i = i - 1;
+            j = j + 1;
+  	        }else{
+            i = i + 1;
+            j = j - 1;
+  	}
+  }
+  return table;
+  }
+
+int16_t *quantif(int16_t * ZZ){
+  int16_t * table= calloc(64, sizeof(int16_t));
+  int i,j;
+  for (i=0; i<8; i++){
+    for(j=0; j<8; j++){
+      table[8*i+j] = ZZ[8*i+j] / compressed_Y_table[8*i+j];
     }
   }
   return table;
@@ -155,12 +219,17 @@ FILE * fichier = NULL;
 
  }
  if (fichier != NULL){
-   int8_t **mcus = mcu_table(fichier);
-   //afficher_table88(mcus[0]);
+   uint16_t **mcus = mcu_table(fichier);
+   //afficher_mcu(mcus[0]);
    printf("\n");
-   int8_t *table = DCT_table(mcus);
-   printf("%f\n", C(0));
-   afficher_table88(table);
+   int16_t *table = DCT_table(mcus);
+   afficher_DCT_ZZ(table);
+   printf("\n");
+   int16_t * table_zz= table_ZZ(table);
+   afficher_DCT_ZZ(table_zz);
+   printf("\n");
+   int16_t *table_quantif = quantif(table_zz);
+   afficher_DCT_ZZ(table_quantif);
   }
 
   ecriture_entete_jpeg(argv[1]);
