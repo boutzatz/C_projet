@@ -35,36 +35,36 @@ struct image *decoupage_8x8(FILE* fichier) {
     for (uint16_t i = 0; i < nbr_samples; i++){
         mcu->mcu_table[i] = calloc(64, sizeof(uint16_t));
     }
-    uint32_t nv_largeur = ceil(entete->largeur / 8)*8;
-    uint32_t nv_hauteur = ceil(entete->hauteur / 8)*8;
+    uint32_t nv_largeur = ceil((float) entete->largeur / 8)*8;
+    uint32_t nv_hauteur = ceil((float) entete->hauteur / 8)*8;
     // for (uint32_t i = 0; i < nbr_samples*64; i++){
     //     uint32_t i_sample_number = ceil(entete->largeur/8)/8 + ceil(entete->hauteur/8)/8;
     // }
     uint32_t sample_number;
     uint16_t index_mcu;
     uint32_t i = 0;
-    int16_t c = fgetc(fichier);
+    int16_t c = 0;
 
     while ( i < nv_largeur*nv_hauteur ){
-          printf("%u\n", i);
-          if (i% nv_largeur < entete->largeur && i/nv_hauteur < entete->hauteur){
+          if (i% nv_largeur < entete->largeur && i/nv_largeur < entete->hauteur){
             /* code */
-          sample_number = (i%entete->largeur)/8 + (entete->hauteur/8)*((i/entete->hauteur)/8);
-          index_mcu = 8*((i/entete->hauteur)%8) + (i%entete->largeur)%8;
+          sample_number = (i%nv_largeur)/8 + (nv_largeur/8)*((i/nv_largeur)/8);
+          index_mcu = 8*((i/nv_largeur)%8) + (i%nv_largeur)%8;
           //printf("%i\t%i\t %i\n", sample_number, index_in_mcu, i);
-          mcu->mcu_table[sample_number][index_mcu] = c;
-          i++;
           c = fgetc(fichier);
 
+          mcu->mcu_table[sample_number][index_mcu] = c;
+          i++;
 
-        }  else if (i%nv_largeur >= entete->largeur && i%nv_hauteur < entete->hauteur) {
-          mcu->mcu_table[sample_number][index_mcu+1] = c;
+
+        }  else if (i%nv_largeur >= entete->largeur && i/nv_largeur < entete->hauteur) {
+          mcu->mcu_table[sample_number][index_mcu+1] = mcu->mcu_table[sample_number][index_mcu];
           index_mcu++;
           i++;
         } else {
           uint32_t i_bis = i - nv_largeur;
-          uint32_t sample_number_bis = (i_bis%entete->largeur)/8 + (entete->hauteur/8)*((i_bis/entete->hauteur)/8);
-          uint16_t index_mcu_bis = 8*((i_bis/entete->hauteur)%8) + (i_bis%entete->largeur)%8;
+          uint32_t sample_number_bis = (i_bis%nv_largeur)/8 + (nv_largeur/8)*((i_bis/nv_largeur)/8);
+          uint16_t index_mcu_bis = 8*((i_bis/nv_largeur)%8) + (i_bis%nv_largeur)%8;
           mcu->mcu_table[sample_number_bis][index_mcu_bis + 8] = mcu->mcu_table[sample_number_bis][index_mcu_bis];
           i++;
         }
@@ -86,7 +86,7 @@ void afficher_mcu(uint16_t *tableau) {
 }
 
 void afficher(struct image *mcus){
-  for (uint16_t i=61; i < 65 ; i++){
+  for (uint16_t i=60; i < 65 ; i++){
    printf(" ITER %u\n", i );
     afficher_mcu(mcus->mcu_table[i]);
     printf("\n\n");

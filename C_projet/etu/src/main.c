@@ -34,15 +34,15 @@ FILE * fichier = NULL;
  }
  if (fichier != NULL){
    struct image* mcus = decoupage_8x8(fichier);
-   afficher(mcus);
-  //  DCT_table(mcus);
-  //  free(mcus->mcu_table);
-  //  image_zz(mcus);
-  //  free(mcus->dct_table);
-  //  image_quantification(mcus);
-  //  free(mcus->table_zz);
   //  afficher(mcus);
-  //  ecriture_entete_jpeg(argv[1], mcus, "fichier_sortie.jpg");
+   DCT_table(mcus);
+   free(mcus->mcu_table);
+   image_zz(mcus);
+   free(mcus->dct_table);
+   image_quantification(mcus);
+   free(mcus->table_zz);
+   afficher(mcus);
+   ecriture_entete_jpeg(argv[1], mcus, "fichier_sortie.jpg");
 
 
 
